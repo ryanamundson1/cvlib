@@ -1,5 +1,6 @@
 import cv2
 import os
+import platform
 import numpy as np
 from .utils import download_file
 
@@ -101,6 +102,13 @@ def detect_common_objects(image, confidence=0.5, nms_thresh=0.3, model='yolov4',
         weights_url = 'https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v4_pre/yolov4-tiny.weights'
         blob = cv2.dnn.blobFromImage(image, scale, (416,416), (0,0,0), True, crop=False)      
 
+    elif model == 'yolov7':
+        config_file_name = 'yolov7.cfg'
+        cfg_url = 'https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov7.cfg'
+        weights_file_name = 'yolov7.pt'
+        weights_url = 'https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7.pt'
+        blob = cv2.dnn.blobFromImage(image, scale, (416,416), (0,0,0), True, crop=False)
+
     else:
         config_file_name = 'yolov3.cfg'
         cfg_url = 'https://github.com/arunponnusamy/object-detection-opencv/raw/master/yolov3.cfg'
@@ -125,10 +133,15 @@ def detect_common_objects(image, confidence=0.5, nms_thresh=0.3, model='yolov4',
         net = cv2.dnn.readNet(weights_file_abs_path, config_file_abs_path)
         initialize = False
 
-    # enables opencv dnn module to use CUDA on Nvidia card instead of cpu
+    # enables opencv dnn module to use CUDA (or OPENCV if Mac M1) on Nvidia card instead of cpu
     if enable_gpu:
-        net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-        net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+        if platform.processor() == 'arm':
+            net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
+            net.setPreferableTarget(cv.dnn.DNN_TARGET_OPENCL)
+            
+        else:
+            net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+            net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
     net.setInput(blob)
 
