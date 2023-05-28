@@ -81,6 +81,8 @@ def detect_common_objects(image, confidence=0.5, nms_thresh=0.3, model='yolov4',
     global classes
     global dest_dir
 
+    from_pt = False
+    
     if model == 'yolov3-tiny':
         config_file_name = 'yolov3-tiny.cfg'
         cfg_url = "https://github.com/pjreddie/darknet/raw/master/cfg/yolov3-tiny.cfg"
@@ -108,16 +110,19 @@ def detect_common_objects(image, confidence=0.5, nms_thresh=0.3, model='yolov4',
         weights_file_name = 'yolov7.pt'
         weights_url = 'https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7.pt'
         blob = cv2.dnn.blobFromImage(image, scale, (416,416), (0,0,0), True, crop=False)
+        onnx_file_name = 'yolov7.onnx'
+        from_pt = True
 
     else:
         config_file_name = 'yolov3.cfg'
         cfg_url = 'https://github.com/arunponnusamy/object-detection-opencv/raw/master/yolov3.cfg'
         weights_file_name = 'yolov3.weights'
         weights_url = 'https://pjreddie.com/media/files/yolov3.weights'
+        
         blob = cv2.dnn.blobFromImage(image, scale, (416,416), (0,0,0), True, crop=False)    
 
     config_file_abs_path = dest_dir + os.path.sep + config_file_name
-    weights_file_abs_path = dest_dir + os.path.sep + weights_file_name    
+    weights_file_abs_path = dest_dir + os.path.sep + weights_file_name
     
     if not os.path.exists(config_file_abs_path):
         download_file(url=cfg_url, file_name=config_file_name, dest_dir=dest_dir)
@@ -125,12 +130,25 @@ def detect_common_objects(image, confidence=0.5, nms_thresh=0.3, model='yolov4',
     if not os.path.exists(weights_file_abs_path):
         download_file(url=weights_url, file_name=weights_file_name, dest_dir=dest_dir)    
 
+
+    if from_pt:
+        from ultralytics import YOLO
+        model = YOLO(weights_file_abs_path)  
+
+        model.export(format="onnx", opset=12)
+        weights_file_abs_path =  dest_dir + os.path.sep + onnx_file_name
+        
+        
     global initialize
     global net
 
     if initialize:
         classes = populate_class_labels()
-        net = cv2.dnn.readNet(weights_file_abs_path, config_file_abs_path)
+        
+        if from_pt:
+            cv2.dnn.readNetFromONNX(weights_file_abs_path)
+        else:
+            net = cv2.dnn.readNet(weights_file_abs_path, config_file_abs_path)
         initialize = False
 
     # enables opencv dnn module to use CUDA (or OPENCV if Mac M1) on Nvidia card instead of cpu
