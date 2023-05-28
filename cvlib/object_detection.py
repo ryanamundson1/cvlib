@@ -110,7 +110,7 @@ def detect_common_objects(image, confidence=0.5, nms_thresh=0.3, model='yolov4',
         weights_file_name = 'yolov7.pt'
         weights_url = 'https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7.pt'
         blob = cv2.dnn.blobFromImage(image, scale, (416,416), (0,0,0), True, crop=False)
-        onnx_file_name = 'yolov7.onnx'
+        onnx_file_name = 'yolov8n.onnx'
         from_pt = True
 
     else:
@@ -133,7 +133,8 @@ def detect_common_objects(image, confidence=0.5, nms_thresh=0.3, model='yolov4',
 
     if from_pt:
         from ultralytics import YOLO
-        model = YOLO(weights_file_abs_path)  
+        
+        model = YOLO("yolov8n.pt") 
 
         model.export(format="onnx", opset=12)
         weights_file_abs_path =  dest_dir + os.path.sep + onnx_file_name
