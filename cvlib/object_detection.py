@@ -137,7 +137,10 @@ def detect_common_objects(image, confidence=0.5, nms_thresh=0.3, model='yolov4',
         model = YOLO("yolov8n.pt") 
 
         model.export(format="onnx", opset=12)
+        
         weights_file_abs_path =  dest_dir + os.path.sep + onnx_file_name
+        
+        os.rename("yolov8n", weights_file_abs_path)
         
         
     global initialize
@@ -231,7 +234,11 @@ class YOLO:
     def detect_objects(self, image, confidence=0.5, nms_thresh=0.3,
                        enable_gpu=False):
 
-        if enable_gpu:
+        if platform.processor() == 'arm':
+            net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
+            net.setPreferableTarget(cv.dnn.DNN_TARGET_OPENCL)
+            
+        else:
             net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
             net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
