@@ -132,15 +132,12 @@ def detect_common_objects(image, confidence=0.5, nms_thresh=0.3, model='yolov4',
 
 
     if from_pt:
-        from ultralytics import YOLO
-        
-        model = YOLO("yolov8n.pt") 
-
-        model.export(format="onnx", opset=12)
-        
         weights_file_abs_path =  dest_dir + os.path.sep + onnx_file_name
-        
-        os.rename(onnx_file_name, weights_file_abs_path)
+        if not os.path.exists(weights_file_abs_path):
+            from ultralytics import YOLO
+            model = YOLO("yolov8n.pt") 
+            model.export(format="onnx", opset=12)
+            os.rename(onnx_file_name, weights_file_abs_path)
         
         
     global initialize
@@ -150,7 +147,7 @@ def detect_common_objects(image, confidence=0.5, nms_thresh=0.3, model='yolov4',
         classes = populate_class_labels()
         
         if from_pt:
-            cv2.dnn.readNetFromONNX(weights_file_abs_path)
+            net = cv2.dnn.readNetFromONNX(weights_file_abs_path)
         else:
             net = cv2.dnn.readNet(weights_file_abs_path, config_file_abs_path)
         initialize = False
