@@ -140,7 +140,7 @@ def detect_common_objects(image, confidence=0.5, nms_thresh=0.3, model='yolov4',
         
         weights_file_abs_path =  dest_dir + os.path.sep + onnx_file_name
         
-        os.rename("yolov8n", weights_file_abs_path)
+        os.rename(onnx_file_name, weights_file_abs_path)
         
         
     global initialize
