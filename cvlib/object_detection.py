@@ -172,7 +172,7 @@ def detect_common_objects(image, confidence=0.5, nms_thresh=0.3, model='yolov4',
 
     for out in outs:
         for detection in out:
-            scores = detection[5:]
+            scores = detection[5:, 0]
             class_id = np.argmax(scores)
             max_conf = scores[class_id]
             if max_conf > confidence:
