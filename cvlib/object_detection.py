@@ -136,7 +136,7 @@ def detect_common_objects(image, confidence=0.5, nms_thresh=0.3, model='yolov4',
         if not os.path.exists(weights_file_abs_path):
             from ultralytics import YOLO
             model = YOLO("yolov8n.pt") 
-            model.export(format="onnx", opset=12)
+            model.export(format="onnx", opset=12, imgsz=(416, 416))
             os.rename(onnx_file_name, weights_file_abs_path)
         
         
